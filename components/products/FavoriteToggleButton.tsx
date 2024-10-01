@@ -1,29 +1,13 @@
-'use client'
+import { auth } from '@clerk/nextjs/server';
+import { CardSignInButton } from '../form/Buttons';
+import { fetchFavoriteId } from '@/utils/actions';
+import FavoriteToggleForm from './FavoriteToggleForm';
 
-import { usePathname } from 'next/navigation'
-import FormContainer from '../form/FormContainer'
-import { toggleFavoriteAction } from '@/utils/actions'
-import { CardSubmitButton } from '../form/Buttons'
+async function FavoriteToggleButton({ productId }: { productId: string }) {
+  const { userId } = auth();
+  if (!userId) return <CardSignInButton />;
+  const favoriteId = await fetchFavoriteId({ productId });
 
-type FavoriteToggleFormProps = {
-  productId: string
-  favoriteId: string | null
+  return <FavoriteToggleForm favoriteId={favoriteId} productId={productId} />;
 }
-
-function FavoriteToggleForm({
-  productId,
-  favoriteId,
-}: FavoriteToggleFormProps) {
-  const pathname = usePathname()
-  const toggleAction = toggleFavoriteAction.bind(null, {
-    productId,
-    favoriteId,
-    pathname,
-  })
-  return (
-    <FormContainer action={toggleAction}>
-      <CardSubmitButton isFavorite={favoriteId ? true : false} />
-    </FormContainer>
-  )
-}
-export default FavoriteToggleForm
+export default FavoriteToggleButton;

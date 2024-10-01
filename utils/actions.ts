@@ -1,7 +1,7 @@
 'use server'
-import db from '@/utils/db'
 
-import { auth, currentUser } from '@clerk/nextjs/server'
+import db from '@/utils/db'
+import { currentUser, auth } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
 import {
   imageSchema,
@@ -12,27 +12,23 @@ import {
 import { deleteImage, uploadImage } from './supabase'
 import { revalidatePath } from 'next/cache'
 import { Cart } from '@prisma/client'
-
-//import { auth, currentUser } from '@clerk/nextjs/server'
+const getAuthUser = async () => {
+  const user = await currentUser()
+  if (!user) redirect('/')
+  return user
+}
 
 const getAdminUser = async () => {
   const user = await getAuthUser()
   if (user.id !== process.env.ADMIN_USER_ID) redirect('/')
   return user
 }
+
 const renderError = (error: unknown): { message: string } => {
   console.log(error)
   return {
-    message: error instanceof Error ? error.message : 'An error occurred',
+    message: error instanceof Error ? error.message : 'an error occurred',
   }
-}
-
-const getAuthUser = async () => {
-  const user = await currentUser()
-  if (!user) {
-    throw new Error('You must be logged in to access this route')
-  }
-  return user
 }
 
 export const fetchFeaturedProducts = async () => {
@@ -133,6 +129,30 @@ export const fetchAdminProductDetails = async (productId: string) => {
   return product
 }
 
+export const updateProductAction = async (
+  prevState: any,
+  formData: FormData
+) => {
+  await getAdminUser()
+  try {
+    const productId = formData.get('id') as string
+    const rawData = Object.fromEntries(formData)
+    const validatedFields = validateWithZodSchema(productSchema, rawData)
+
+    await db.product.update({
+      where: {
+        id: productId,
+      },
+      data: {
+        ...validatedFields,
+      },
+    })
+    revalidatePath(`/admin/products/${productId}/edit`)
+    return { message: 'Product updated successfully' }
+  } catch (error) {
+    return renderError(error)
+  }
+}
 export const updateProductImageAction = async (
   prevState: any,
   formData: FormData
@@ -182,6 +202,7 @@ export const toggleFavoriteAction = async (prevState: {
 }) => {
   const user = await getAuthUser()
   const { productId, favoriteId, pathname } = prevState
+
   try {
     if (favoriteId) {
       await db.favorite.delete({
@@ -198,7 +219,7 @@ export const toggleFavoriteAction = async (prevState: {
       })
     }
     revalidatePath(pathname)
-    return { message: favoriteId ? 'Removed from Faves' : 'Added to Faves' }
+    return { message: favoriteId ? 'removed from faves' : 'added to faves' }
   } catch (error) {
     return renderError(error)
   }

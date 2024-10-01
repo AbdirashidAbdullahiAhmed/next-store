@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import LoadingTable from '@/components/global/LoadingTable'
-//import Loadable from 'next/dist/shared/lib/loadable.shared-runtime';
+import LoadingTable from '@/components/global/LoadingTable';
+
 function loading() {
-  return <LoadingTable />
+  return <LoadingTable />;
 }
-export default loading
+export default loading;

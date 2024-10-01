@@ -2,7 +2,6 @@
 
 import { useFormState } from 'react-dom'
 import { useEffect } from 'react'
-// import { useToast } from '@/components/ui/use-toast';
 import { useToast } from '@/hooks/use-toast'
 import { actionFunction } from '@/utils/types'
 
@@ -19,11 +18,14 @@ function FormContainer({
 }) {
   const [state, formAction] = useFormState(action, initialState)
   const { toast } = useToast()
+
   useEffect(() => {
     if (state.message) {
       toast({ description: state.message })
     }
-  }, [state])
+  }, [state, toast]) // Add 'toast' to the dependency array
+
   return <form action={formAction}>{children}</form>
 }
+
 export default FormContainer
